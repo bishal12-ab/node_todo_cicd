@@ -1,19 +1,62 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
 
-trigger:
-- master
+trigger: none
 
 pool:
   vmImage: ubuntu-latest
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+stages:
+  - stage: codestaticcheck
+    displayName: codestati check
+    jobs:
+      - job: codestaticcheck
+        displayName: codestati check
+        steps:
+          - task: SonarQubePrepare@7
+            inputs:
+              SonarQube: 'sonar scan'   # 👈 Service connection ka naam
+              scannerMode: 'cli'
+              configMode: 'manual'
+              cliProjectKey: 'my_applicatina_pipeline_elearn-backend.git_4363d830-02d2-4e94-bae0-f7c0c473d637'
+              cliProjectName: 'elearn-backend.git'
+              cliSources: '.'
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+          - task: SonarQubeAnalyze@7
+            inputs:
+              jdkversion: 'JAVA_HOME_21_X64'
+            # 👇 Yeh hata diya — yeh problem kar raha tha
+            # env:
+            #   SONAR_TOKEN: $(SONAR_TOKEN)
+
+          - task: SonarQubePublish@7
+            inputs:
+              pollingTimeoutSec: '300'
+  - stage: buildstage
+    displayName: build stage
+    jobs:
+      - job: buildjob
+        displayName: build job
+        steps:
+        - task: Docker@2
+          inputs:
+            containerRegistry: 'acr service conection'
+            repository: 'elearn-backend'
+            command: 'buildAndPush'
+            Dockerfile: '**/Dockerfile'
+            tags: |
+              $(Build.BuildId)
+              latest
+  - stage: deploystage
+    displayName: deploy stage
+    jobs:
+      - job: deployjob
+        displayName: build job
+        steps:
+        - task: KubernetesManifest@1
+          inputs:
+            action: 'deploy'
+            connectionType: 'kubernetesServiceConnection'
+            kubernetesServiceConnection: 'k8s service conection'
+            namespace: 'default'
+            manifests: 'manifests/*.yaml'
+            containers: 'sataksregistry.azurecr.io/elearn-backend.$(Build.BuildId)'
+            imagePullSecrets: 'az aks update   --name sati-AKS --resource-group  sat-rg --attach-acr sataksregistry'
