@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      IMAGE_NAME: node_todo-add-
+      IMAGE_NAME: todo-add-tasks-api
       IMAGE_TAG: v1
       ACR_NAME: acrtodoappansh123
       ACR_LOGIN_SERVER: acrtodoappansh123.azurecr.io
