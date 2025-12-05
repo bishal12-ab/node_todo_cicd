@@ -14,8 +14,8 @@ jobs:
     env:
       IMAGE_NAME: todo-add-tasks-api
       IMAGE_TAG: v1
-      ACR_NAME: bestacr12345
-      ACR_LOGIN_SERVER: bestacr12345.azurecr.io
+      ACR_NAME: bhaluacr
+      ACR_LOGIN_SERVER: bhaluacr.azurecr.io
 
     steps:
       - name: Checkout code
